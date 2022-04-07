@@ -1,0 +1,1 @@
+def efficiency_wei(W,local)->
