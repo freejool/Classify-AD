@@ -10,24 +10,25 @@ for i = 1:numMat
     mat(i) = load([matPath matDir(i).name]); %读取每个mat
 end
 
-c=parcluster();
-j=createJob(c);
+c = parcluster();
+j = createJob(c);
 
 for i = 1:numMat
-%thresholded=threshold_proportional(result(i).result,0.5);
-    createTask(j,@efficiency_wei,1,{mat(i).result});
+    %thresholded=threshold_proportional(result(i).result,0.5);
+    createTask(j, @efficiency_wei, 1, {mat(i).result});
 end
+
 % submit(j);
 % wait(j);
-% 
+%
 % taskoutput=fetchOutputs(j);
 % for i = 1:numMat
 %     disp(taskoutput{i});
 % end
-% 
+%
 % disp(mean(e))
-% 
-% 
+%
+%
 % t=createTask(j,@efficiency_wei,1,{result(1).result});
 % submit(j);
 % wait(j);
