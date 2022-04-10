@@ -8,7 +8,8 @@ numMat = length(matDir);
 mat = zeros(360, 360, 24, 'single');
 
 for i = 1:numMat
-    mat(:, :, i) = load([matPath matDir(i).name]).dpswed_mat; %读取每个mat
+    tmp = load([matPath matDir(i).name]);
+    mat(:, :, i) = tmp.dpswed_mat; %读取每个mat
 end
 
 c = parcluster();
