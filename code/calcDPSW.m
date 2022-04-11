@@ -1,8 +1,16 @@
 close all;
 clear all;
 
-matPath = '/Users/sxing/Library/CloudStorage/OneDrive-Personal/2021_2/matlab/Connectivity/3.LMCI/'; % 图像库路径
-matoutPath = '/Users/sxing/Library/CloudStorage/OneDrive-Personal/2021_2/matlab/Connectivity/3.LMCIout/'; % 图像库路径
+file = fileread('path.json');
+% path.json is a file that contains the path to the 'Connectivity' folder
+%           like   {
+%                      "Connectivity":"C:/Users/Sxing/Develop/matlab/Connectivity/"
+%                  }
+
+path = jsondecode(file);
+matPath = [path.Connectivity '0.HC' '/'];
+matoutPath = [path.Connectivity '0.HCout' '/'];
+
 matDir = dir([matPath '*.mat']); % 遍历所有mat格式文件
 numMat = length(matDir);
 mat = zeros(360, 360, 24, 'single');
