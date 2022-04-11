@@ -8,3 +8,4 @@ matlab.code-workspace
 .vscode/
 .DS_Store
 testcode/
+path.json
