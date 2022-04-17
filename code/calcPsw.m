@@ -11,7 +11,7 @@ function [psw, thresholdedM] = calcPsw(M)
     E = zeros(1, 20);
     gce = zeros(1, 20);
 
-    psws = 0.01:0.05:1;
+    psws = 0.01:0.01:0.2;
 
     for p = 1:length(psws)
         E(p) = efficiency_wei(threshold_proportional(M, psws(p)));
