@@ -7,23 +7,29 @@ file = fileread('path.json');
 %                      "Connectivity":"C:/Users/Sxing/Develop/matlab/Connectivity/"
 %                  }
 
+% matClasses=['0.HC' '1.EMCI' '3.LMCI' '4.AD']
+matClass='1.EMCI';
 path = jsondecode(file);
-matPath = [path.Connectivity '0.HC' '/'];
-matoutPath = [path.Connectivity '0.HCout' '/'];
+matPath = [path.Connectivity matClass '/'];
+matoutPath = [path.Connectivity matClass 'out/'];
+
+%%% delete exist files
+if exist([path.Connectivity matClass 'out/'],'dir')~=0
+    rmdir([path.Connectivity matClass 'out/'],'s');
+end
+mkdir([path.Connectivity matClass 'out/']);
+%%%
 
 matDir = dir([matPath '*.mat']); % 遍历所有mat格式文件
 numMat = length(matDir);
-mat = zeros(360, 360, 24, 'single');
-matt = zeros(360, 360, 24, 'single');
+mat = zeros(360, 360, numMat, 'single');
+matt = zeros(360, 360, numMat, 'single');
 dpsw = zeros(1, numMat);
 
 for i = 1:numMat
     tmp = load([matPath matDir(i).name]);
     mat(:, :, i) = tmp.result; %读取每个mat
 end
-
-% i=1;
-% [dpsw(i),matt(:,:,i)]=calcPsw(mat(:,:,i));
 
 c = parcluster();
 j = createJob(c);
