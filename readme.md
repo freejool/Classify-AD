@@ -18,5 +18,5 @@ Powered by Apple Mac M1
 ```
 
 to run scripts:
-- root dir should be containing BCT(a toolbox) and Connectivity(brain correlation matrix) like above.
-- corresponding paths strings in code should be modified.
+- make sure that BCT (Brain Connectivity Toolbox) and the code to be exec are added to path
+- there is a 'path.json' file in the path
