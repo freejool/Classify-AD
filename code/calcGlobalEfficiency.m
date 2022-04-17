@@ -7,14 +7,13 @@ file = fileread('path.json');
 %                      "Connectivity":"C:/Users/Sxing/Develop/matlab/Connectivity/"
 %                  }
 
+matClass='3.LMCI';
 path = jsondecode(file);
-matPath = [path.Connectivity '0.HCout' '/'];
+matPath = [path.Connectivity matClass 'out' '/'];
 
-matDir = dir([matPath 'dpswedx*.mat']); % 遍历所有mat格式文件
+matDir = dir([matPath 'dpswed*.mat']); % 遍历所有mat格式文件
 numMat = length(matDir);
-if numMat == 0 
-    exit
-end
+
 mat = zeros(360, 360, numMat, 'single');
 
 for i = 1:numMat
@@ -36,4 +35,4 @@ taskoutput = fetchOutputs(j);
 e = [taskoutput{:, 1}];
 % 变异系数
 cv=std(e)/mean(e);
-save([path.Connectivity '0.HCout' '/stats']);
+save([path.Connectivity matClass 'out' '/stats']);
