@@ -10,9 +10,12 @@ file = fileread('path.json');
 path = jsondecode(file);
 matPath = [path.Connectivity '0.HCout' '/'];
 
-matDir = dir([matPath 'dpswed*.mat']); % 遍历所有mat格式文件
+matDir = dir([matPath 'dpswedx*.mat']); % 遍历所有mat格式文件
 numMat = length(matDir);
-mat = zeros(360, 360, 24, 'single');
+if numMat == 0 
+    exit
+end
+mat = zeros(360, 360, numMat, 'single');
 
 for i = 1:numMat
     tmp = load([matPath matDir(i).name]);
@@ -30,4 +33,7 @@ submit(j);
 wait(j);
 
 taskoutput = fetchOutputs(j);
-e = mean([taskoutput{:, 1}]);
+e = [taskoutput{:, 1}];
+% 变异系数
+cv=std(e)/mean(e);
+save([path.Connectivity '0.HCout' '/stats']);
