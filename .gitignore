@@ -9,3 +9,5 @@ matlab.code-workspace
 .DS_Store
 testcode/
 path.json
+*.asv
+venv/
