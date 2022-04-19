@@ -1,18 +1,27 @@
 close all;
 clear all;
 
-matPath = '/Users/sxing/Library/CloudStorage/OneDrive-Personal/2021_2/matlab/Connectivity/4.AD/'; % 图像库路径
-% matoutPath = '/Users/sxing/Library/CloudStorage/OneDrive-Personal/2021_2/matlab/Connectivity/4.ADout/'; % 图像库路径
-matDir = dir([matPath '*.mat']); % 遍历所有mat格式文件
+ConnPath = detectPath(); % replace detectPath() with your path to Connectivity folder
+
+% matClasses=["0.HC" "1.EMCI" "3.LMCI" "4.AD"]
+matClass = '4.AD';
+matPath = [ConnPath matClass 'out/'];
+
+matDir = dir([matPath 'dpswed*.mat']); % 遍历所有mat格式文件
 numMat = length(matDir);
-mat = zeros(360, 360, 24, 'single');
-matt = zeros(360, 360, 24, 'single');
-dpsw = zeros(1, numMat);
+mat = zeros(360, 360, 'single');
 
 for i = 1:numMat
-    mat(:, :, i) = load([matPath matDir(i).name]).result; %读取每个mat
+    mat = load([matPath matDir(i).name]).dpswed_mat; %读取每个mat
+    assortativity = assortativity_wei(mat, 0);
+    [startIdx, endIdx] = regexp(matDir(i).name, 'ADNI[^.]+');
+    matIdx = matDir(i).name(startIdx:endIdx);
+    out(i).index = matIdx;
+    out(i).value = assortativity;
 end
 
-for i = 1:numMat
-    r(i) = assortativity_wei(mat(:, :, i), 0);
-end
+%for i = 1:numMat
+%    assortativity(i) = assortativity_wei(mat(:, :, i), 0);
+%end
+
+%save([matPath 'assortativity'], 'assortativity');
