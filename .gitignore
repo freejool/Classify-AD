@@ -11,3 +11,4 @@ testcode/
 path.json
 *.asv
 venv/
+config.json
