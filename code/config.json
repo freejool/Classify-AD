@@ -1,0 +1,3 @@
+{
+    "mongodburl": "mongodb+srv://sxing:4568@cluster0.plzub.mongodb.net/AD?retryWrites=true&w=majority"
+}
