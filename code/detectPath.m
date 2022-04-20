@@ -5,7 +5,7 @@ function ConnPath = detectPath()
     if getenv("USERNAME") == "Sxing"
         ConnPath = 'C:/Users/Sxing/OneDrive/2021_2/matlab/Connectivity/';
     elseif getenv("USER") == "sxing"
-        ConnPath = '/Users/sxing/Library/CloudStorage/OneDrive-Personal/2021_2/matlab/Connectivity/';
+        ConnPath = '/Users/sxing/Developer/matlab/Connectivity';
     else
         throw(MException("detect:error", "Connectivity not found"));
     end
