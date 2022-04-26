@@ -1,29 +1,30 @@
 close all;
 clear all;
 
-Connpath = detectPath(); % replace detectPath() with your path to Connectivity folder
+ConnPath = detectPath(); % replace detectPath() with your path to Connectivity folder
 
 % matClasses=["0.HC" "1.EMCI" "3.LMCI" "4.AD"]
 matClass = "1.EMCI";
 
-matPath = [ConnPath matClass "/"];
-matoutPath = [ConnPath matClass "out/"];
+matPath = join([ConnPath matClass "/"], "");
+matoutPath = join([ConnPath matClass "out/"], "");
 
 %%% delete exist files and mkdir
 if exist(matoutPath, "dir") ~= 0
     rmdir(matoutPath, "s");
 end
+
 mkdir(matoutPath);
 %%%
 
-matDir = dir([matPath "*.mat"]); % 遍历所有mat格式文件
+matDir = dir(join([matPath "*.mat"], "")); % 遍历所有mat格式文件
 numMat = length(matDir);
 mat = zeros(360, 360, numMat, "single");
 matt = zeros(360, 360, numMat, "single");
 dpsw = zeros(1, numMat);
 
 for i = 1:numMat
-    tmp = load([matPath matDir(i).name]);
+    tmp = load(join([matPath matDir(i).name], ""));
     mat(:, :, i) = tmp.result; %读取每个mat
 end
 
