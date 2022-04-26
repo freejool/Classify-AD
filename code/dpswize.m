@@ -43,7 +43,7 @@ dpsws = [taskoutput{:, 1}];
 
 for i = 1:length(taskoutput)
     dpswed_mat = taskoutput{i, 2};
-    save([matoutPath "dpswed" matDir(i).name(4:end)], "dpswed_mat");
+    save(join([matoutPath "dpswed" matDir(i).name(4:end)], ""), "dpswed_mat");
 end
 
-save([matoutPath "dpsws"], "dpsws");
+save(join([matoutPath "dpsws"], ""), "dpsws");
