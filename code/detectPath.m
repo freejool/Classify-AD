@@ -4,6 +4,8 @@ function ConnPath = detectPath()
 
     if getenv("USERNAME") == "Sxing"
         ConnPath = 'C:/Users/Sxing/OneDrive/2021_2/matlab/Connectivity/';
+    elseif getenv("USERNAME") == "zyl"
+        ConnPath = 'C:/Users/zyl/Desktop/Connectivity/';
     elseif getenv("USER") == "sxing"
         ConnPath = '/Users/sxing/Developer/matlab/Connectivity/';
     else
