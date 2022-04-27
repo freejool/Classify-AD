@@ -1,3 +1,4 @@
+
 close all;
 clear all;
 
@@ -13,18 +14,21 @@ mat = zeros(360, 360, 'single');
 
 for i = 1:numMat
     mat = load([matPath matDir(i).name]).dpswed_mat; %读取每个mat
+
+    coefVec = clustering_coef_wu(mat);
+    coef=mean(coefVec);
+    
     leng = 1 ./ mat;
     dis = distance_wei(leng);
     charPath = charpath(dis, 0, 0);
+    
+    smallWorldIdx=(coef/0.1854918)/(charPath/1.839482);
+
     [startIdx, endIdx] = regexp(matDir(i).name, 'ADNI[^.]+');
     matIdx = matDir(i).name(startIdx:endIdx);
     out(i).index = matIdx;
-    out(i).value = charPath;
+    out(i).value = smallWorldIdx;
 end
 
-disp(jsonencode(out));
-%for i = 1:numMat
-%    assortativity(i) = assortativity_wei(mat(:, :, i), 0);
-%end
-
-%save([matPath 'assortativity'], 'assortativity');
+f=fopen('~/Desktop/a.json','w');
+fprintf(f,'%s',jsonencode(out));

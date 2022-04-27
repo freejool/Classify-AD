@@ -15,19 +15,13 @@ for i = 1:numMat
     mat = load([matPath matDir(i).name]).dpswed_mat; %读取每个mat
 
     coefVec = clustering_coef_wu(mat);
-    coef=mean(coefVec);
-    
-    leng = 1 ./ mat;
-    dis = distance_wei(leng);
-    charPath = charpath(dis, 0, 0);
-    
-    smallWorldIdx=(coef/0.1854918)/(charPath/1.839482);
+    coef = mean(coefVec);
 
     [startIdx, endIdx] = regexp(matDir(i).name, 'ADNI[^.]+');
     matIdx = matDir(i).name(startIdx:endIdx);
     out(i).index = matIdx;
-    out(i).value = smallWorldIdx;
+    out(i).value = coef;
 end
 
-f=fopen('~/Desktop/a.json','w');
-fprintf(f,'%s',jsonencode(out));
+f = fopen('~/Desktop/a.json', 'w');
+fprintf(f, '%s', jsonencode(out));
