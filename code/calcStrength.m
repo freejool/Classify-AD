@@ -4,7 +4,7 @@ clear all;
 ConnPath = detectPath(); % replace detectPath() with your path to Connectivity folder
 
 % matClasses=["0.HC" "1.EMCI" "3.LMCI" "4.AD"]
-matClass = '4.AD';
+matClass = '3.LMCI';
 matPath = [ConnPath matClass 'out/'];
 
 matDir = dir([matPath 'dpswed*.mat']); % 遍历所有mat格式文件
@@ -13,21 +13,13 @@ mat = zeros(360, 360, 'single');
 
 for i = 1:numMat
     mat = load([matPath matDir(i).name]).dpswed_mat; %读取每个mat
-
-    coefVec = clustering_coef_wu(mat);
-    coef = mean(coefVec);
-
-    leng = 1 ./ mat;
-    dis = distance_wei(leng);
-    charPath = charpath(dis, 0, 0);
-
-    smallWorldIdx = (coef / 0.1854918) / (charPath / 1.839482);
-
+    sth = strengths_und(mat);
     [startIdx, endIdx] = regexp(matDir(i).name, 'ADNI[^.]+');
     matIdx = matDir(i).name(startIdx:endIdx);
     out(i).index = matIdx;
-    out(i).value = smallWorldIdx;
+    out(i).value = sth;
 end
 
-f = fopen('~/Desktop/a.json', 'w');
+disp(jsonencode(out));
+f = fopen(['~/Desktop/' matClass '.json'], 'w');
 fprintf(f, '%s', jsonencode(out));

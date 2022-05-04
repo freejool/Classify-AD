@@ -1,15 +1,11 @@
 close all;
 clear all;
 
-file = fileread('path.json');
-% path.json is a file that contains the path to the 'Connectivity' folder
-%           like   {
-%                      "Connectivity":"C:/Users/Sxing/Develop/matlab/Connectivity/"
-%                  }
+ConnPath = detectPath(); % replace detectPath() with your path to Connectivity folder
 
-matClass='3.LMCI';
-path = jsondecode(file);
-matPath = [path.Connectivity matClass 'out' '/'];
+% matClasses=["0.HC" "1.EMCI" "3.LMCI" "4.AD"]
+matClass = '3.LMCI';
+matPath = [ConnPath matClass 'out' '/'];
 
 matDir = dir([matPath 'dpswed*.mat']); % 遍历所有mat格式文件
 numMat = length(matDir);
@@ -34,5 +30,5 @@ wait(j);
 taskoutput = fetchOutputs(j);
 e = [taskoutput{:, 1}];
 % 变异系数
-cv=std(e)/mean(e);
+cv = std(e) / mean(e);
 save([path.Connectivity matClass 'out' '/stats']);
