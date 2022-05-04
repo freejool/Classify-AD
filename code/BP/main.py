@@ -12,9 +12,12 @@ from matplotlib.font_manager import FontProperties
 
 
 def neuralNetwork(input_layer_size, hidden_layer_size, out_put_layer):
-    data_img = loadmat_data("code/BP/data_digits.mat")
-    X = data_img['X']
-    y = data_img['y']
+    # data_img = loadmat_data("code/BP/data_digits.mat")
+    data_img = np.zeros([102, 4])
+    with open('code/BP/test.csv', 'r') as f:
+        data_img = np.loadtxt(f, delimiter=',')
+    X = data_img[:, 0:3]
+    y = data_img[:, 3]
 
     '''scaler = StandardScaler()
     scaler.fit(X)
@@ -31,9 +34,9 @@ def neuralNetwork(input_layer_size, hidden_layer_size, out_put_layer):
     X = scaler.transform(X)"""
 
     # 　随机显示几行数据
-    rand_indices = [t for t in [np.random.randint(
-        x-x, m) for x in range(100)]]  # 生成100个0-m的随机数
-    display_data(X[rand_indices, :])     # 显示100个数字
+    # rand_indices = [t for t in [np.random.randint(
+    #     x-x, m) for x in range(100)]]  # 生成100个0-m的随机数
+    # display_data(X[rand_indices, :])     # 显示100个数字
 
     #nn_params = np.vstack((Theta1.reshape(-1,1),Theta2.reshape(-1,1)))
 
@@ -47,7 +50,7 @@ def neuralNetwork(input_layer_size, hidden_layer_size, out_put_layer):
     # np.savetxt("testTheta.csv",initial_nn_params,delimiter=",")
     start = time.time()
     result = optimize.fmin_cg(nnCostFunction, initial_nn_params, fprime=nnGradient, args=(
-        input_layer_size, hidden_layer_size, out_put_layer, X, y, Lambda), maxiter=100)
+        input_layer_size, hidden_layer_size, out_put_layer, X, y, Lambda), maxiter=1000)
     print(u'执行时间：', time.time()-start)
     print(result)
     '''可视化 Theta1'''
@@ -72,34 +75,35 @@ def loadmat_data(fileName):
 
 
 def display_data(imgData):
-    sum = 0
-    '''
-    显示100个数（若是一个一个绘制将会非常慢，可以将要画的数字整理好，放到一个矩阵中，显示这个矩阵即可）
-    - 初始化一个二维数组
-    - 将每行的数据调整成图像的矩阵，放进二维数组
-    - 显示即可
-    '''
-    m, n = imgData.shape
-    width = np.int32(np.round(np.sqrt(n)))
-    height = np.int32(n/width)
-    rows_count = np.int32(np.floor(np.sqrt(m)))
-    cols_count = np.int32(np.ceil(m/rows_count))
-    pad = 1
-    display_array = - \
-        np.ones((pad+rows_count*(height+pad), pad+cols_count*(width+pad)))
-    for i in range(rows_count):
-        for j in range(cols_count):
-            if sum >= m:  # 超过了行数，退出当前循环
-                break
-            display_array[pad+i*(height+pad):pad+i*(height+pad)+height, pad+j*(width+pad):pad+j*(width+pad) +
-                          width] = imgData[sum, :].reshape(height, width, order="F")    # order=F指定以列优先，在matlab中是这样的，python中需要指定，默认以行
-            sum += 1
-        if sum >= m:  # 超过了行数，退出当前循环
-            break
+    pass
+    # sum = 0
+    # '''
+    # 显示100个数（若是一个一个绘制将会非常慢，可以将要画的数字整理好，放到一个矩阵中，显示这个矩阵即可）
+    # - 初始化一个二维数组
+    # - 将每行的数据调整成图像的矩阵，放进二维数组
+    # - 显示即可
+    # '''
+    # m, n = imgData.shape
+    # width = np.int32(np.round(np.sqrt(n)))
+    # height = np.int32(n/width)
+    # rows_count = np.int32(np.floor(np.sqrt(m)))
+    # cols_count = np.int32(np.ceil(m/rows_count))
+    # pad = 1
+    # display_array = - \
+    #     np.ones((pad+rows_count*(height+pad), pad+cols_count*(width+pad)))
+    # for i in range(rows_count):
+    #     for j in range(cols_count):
+    #         if sum >= m:  # 超过了行数，退出当前循环
+    #             break
+    #         display_array[pad+i*(height+pad):pad+i*(height+pad)+height, pad+j*(width+pad):pad+j*(width+pad) +
+    #                       width] = imgData[sum, :].reshape(height, width, order="F")    # order=F指定以列优先，在matlab中是这样的，python中需要指定，默认以行
+    #         sum += 1
+    #     if sum >= m:  # 超过了行数，退出当前循环
+    #         break
 
-    plt.imshow(display_array, cmap='gray')  # 显示灰度图像
-    plt.axis('off')
-    plt.show()
+    # plt.imshow(display_array, cmap='gray')  # 显示灰度图像
+    # plt.axis('off')
+    # plt.show()
 
 # 代价函数
 
@@ -300,5 +304,5 @@ def predict(Theta1, Theta2, X):
 
 
 if __name__ == "__main__":
-    checkGradient()
-    neuralNetwork(400, 25, 10)
+    # checkGradient()
+    neuralNetwork(3, 25, 15)
