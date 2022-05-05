@@ -14,10 +14,10 @@ from matplotlib.font_manager import FontProperties
 def neuralNetwork(input_layer_size, hidden_layer_size, out_put_layer):
     # data_img = loadmat_data("code/BP/data_digits.mat")
     data_img = np.zeros([102, 4])
-    with open('code/BP/test.csv', 'r') as f:
+    with open('code/BP/chars.csv', 'r') as f:
         data_img = np.loadtxt(f, delimiter=',')
-    X = data_img[:, 0:3]
-    y = data_img[:, 3]
+    X = data_img[:, 0:-1]
+    y = data_img[:, -1]
 
     '''scaler = StandardScaler()
     scaler.fit(X)
@@ -305,4 +305,4 @@ def predict(Theta1, Theta2, X):
 
 if __name__ == "__main__":
     # checkGradient()
-    neuralNetwork(3, 25, 15)
+    neuralNetwork(1445, 25, 15)
