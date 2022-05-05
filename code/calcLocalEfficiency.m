@@ -1,6 +1,7 @@
 close all;
 clear all;
 
+tic;
 ConnPath = detectPath(); % replace detectPath() with your path to Connectivity folder
 
 % matClasses=["0.HC" "1.EMCI" "3.LMCI" "4.AD"]
@@ -24,7 +25,7 @@ c = parcluster();
 j = createJob(c);
 
 for i = 1:numMat
-    createTask(j, @efficiency_wei, 1, {mat(:, :, i)});
+    createTask(j, @efficiency_wei, 1, {mat(:, :, i), 2}); %TODO
 end
 
 submit(j);
@@ -33,13 +34,14 @@ wait(j);
 taskoutput = fetchOutputs(j);
 e = [taskoutput{:, 1}];
 
-
 for i = 1:numMat
     out(i).value = e(:, i);
 end
 
 f = fopen(['~/Desktop/' matClass '.json'], 'w');
 fprintf(f, '%s', jsonencode(out));
+
 % 变异系数
 %cv = std(e) / mean(e);
 %save([path.Connectivity matClass 'out' '/stats']);
+toc;
