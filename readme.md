@@ -4,6 +4,8 @@ Powered by MATLAB® 2021a
 
 Powered by [Brain Connectivity Toolbox](https://sites.google.com/site/bctnet/)
 
+Forked ML methods from https://github.com/lawlite19/MachineLearning_Python
+
 Powered by Apple Mac M1
 
 ```
@@ -18,5 +20,6 @@ Powered by Apple Mac M1
 ```
 
 to run scripts:
+
 - make sure that BCT (Brain Connectivity Toolbox) and the code to be exec are added to path
-- there is a 'path.json' file in the path
+- install python packages in requirements.txt
