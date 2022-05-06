@@ -57,7 +57,7 @@ def neuralNetwork(input_layer_size, hidden_layer_size, out_put_layer):
     length = result.shape[0]
     Theta1 = result[0:hidden_layer_size *
                     (input_layer_size+1)].reshape(hidden_layer_size, input_layer_size+1)
-    Theta2 = result[hidden_layer_size*(input_layer_size+1)                    :length].reshape(out_put_layer, hidden_layer_size+1)
+    Theta2 = result[hidden_layer_size*(input_layer_size+1):length].reshape(out_put_layer, hidden_layer_size+1)
     display_data(Theta1[:, 1:length])
     display_data(Theta2[:, 1:length])
     '''预测'''
@@ -305,4 +305,4 @@ def predict(Theta1, Theta2, X):
 
 if __name__ == "__main__":
     # checkGradient()
-    neuralNetwork(1445, 25, 15)
+    neuralNetwork(1445, 100, 25)
