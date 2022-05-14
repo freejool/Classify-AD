@@ -1,9 +1,20 @@
 close all;
+clear all;
 
-clc;
+c = parcluster();
+j = createJob(c);
 
-matPath = 'C:\Users\Sxing\OneDrive\2021_2\matlab\Connectivity\0.HC\'; % 图像库路径
-matDir = dir([matPath '*.mat']); % 遍历所有mat格式文件
-numMat = length(matDir);
+for i = 1:10
+    createTask(j, @myFun, 3, {i});
+end
 
-for i = 1:length(
+submit(j);
+wait(j);
+
+taskoutput = fetchOutputs(j);
+
+function [a, b, c] = myFun(input)
+    a = input + 1;
+    b = input + 2;
+    c = ones(1,100);
+end
