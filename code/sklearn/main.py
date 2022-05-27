@@ -1,9 +1,14 @@
 from genericpath import exists
 import numpy as np
 from sklearn import svm, tree
+from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
+from sklearn import preprocessing
+from sklearn import pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 import time
 import pymongo
 import random
@@ -26,8 +31,8 @@ def count_columns(charsToInput, db) -> int:
 def retrive_data_from_database(charsToInput) -> np.ndarray:
     with open('code/config.json', 'r') as f:
         config = json.load(f)
-    client = pymongo.MongoClient(config['mongodburl'])
-    db = client.AD
+        client = pymongo.MongoClient(config['mongodburl'])
+        db = client.AD
 
     num_column = count_columns(charsToInput, db)
     if exists('code/sklearn/data.txt'):
@@ -42,19 +47,23 @@ def retrive_data_from_database(charsToInput) -> np.ndarray:
     for char in charsToInput:
         cursor = db.get_collection(char).find(
             {}).sort('index', pymongo.ASCENDING)
-        for rowidx, c in enumerate(cursor):
+        rowidx = 0
+        for c in cursor:
             value = c['value']
             if type(value) != list:
                 value = [value]
             ret[rowidx, columnidx:columnidx + len(value)] = value
+            rowidx += 1
         columnidx += len(value)
 
     cursor = db.get_collection('category').find(
         {}).sort('index', pymongo.ASCENDING)
     cate_map = {'HC': 0, 'LMCI': 1, 'EMCI': 2, 'AD': 3}
-    for rowidx, c in enumerate(cursor):
+    rowidx = 0
+    for c in cursor:
         category = c['category']
         ret[rowidx, -1] = cate_map[category]
+        rowidx += 1
 
     ret = np.array(sorted(ret, key=lambda x: x[-1]))
     np.savetxt('code/sklearn/data.txt', ret, delimiter=',')
@@ -111,18 +120,25 @@ def split_data_label(data):
 
 def predict(data, test_size, cates) -> float:
 
+    data_x, data_y = split_data_label(data)
+
+    # standardize and normalize data
+
     train_data, test_data = split_train_test(data, test_size, cates)
 
     train_data_x, train_data_y = split_data_label(train_data)
     test_data_x, test_data_y = split_data_label(test_data)
+    pipe = pipeline.Pipeline(
+        [('scaler', preprocessing.StandardScaler()), ('sc', preprocessing.Normalizer()),
+         ('reduce_dim', PCA()), ('svc', svm.SVC())])
 
     # clf = svm.SVC()
     # clf.fit(train_data_x, train_data_y)
-    clf = MLPClassifier(hidden_layer_sizes=(100, 100, 100))
-    clf.fit(train_data_x, train_data_y)
+    # clf = svm.SVC(C=1, gamma=0.1)
+    pipe.fit(train_data_x, train_data_y)
 
-    accuracy = clf.score(test_data_x, test_data_y)
-    # print('accuracy: ', clf.score(test_data_x, test_data_y))
+    accuracy = pipe.score(test_data_x, test_data_y)
+    # print(np.column_stack((clf.predict(test_data_x), test_data_y)))
     return accuracy
 
 
@@ -159,18 +175,21 @@ def train(data, repeat, test_size, cates, re_dim_to) -> list:
 
 
 def main():
-    repeat = 1
-    charsToInput = ['page_rank', 'optimalNModules', 'degree', 'charpath', 'eigenvector', 'strength',
-                    'global_efficiency', 'betweeness_centrality', 'clustering_coefficient', 'local_efficiency', 'assortativity', 'small_world_index']
+    repeat = 100
+
+    # charsToInput = ['page_rank', 'optimalNModules', 'degree', 'charpath', 'eigenvector', 'strength',
+    #                 'global_efficiency', 'betweeness_centrality', 'clustering_coefficient', 'local_efficiency', 'assortativity', 'small_world_index']
+    charsToInput = ['page_rank', 'global_efficiency_bin', 'optimalNModules', 'local_efficiency_bin', 'degree', 'charpath', 'charpath_bin', 'eigenvector', 'strength', 'global_efficiency',
+                    'betweeness_centrality', 'clustering_coefficient', 'local_efficiency', 'assortativity_bin', 'betweeness_centrality_bin', 'assortativity', 'clustering_coefficient_bin', 'small_world_index']
     test_size = 0.2
     cates = ['HC', 'AD']
-    re_dim_to = 30
+    re_dim_to = 2
     data = retrive_data_from_database(charsToInput)
 
     accr = []
     clu_threads = []
     for i in range(1):
-        clu_threads.append(train(data, repeat, test_size, cates, i))
+        clu_threads.append(train(data, repeat, test_size, cates, re_dim_to))
     for t in clu_threads:
         rets = []
         for tt in t:
@@ -180,6 +199,7 @@ def main():
     # plt.plot(accr)
     # plt.show()
     print(accr)
+    print(sum(accr)/len(accr))
     # print(len(accr))
 
 

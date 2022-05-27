@@ -2,24 +2,22 @@ close all;
 clear all;
 
 tic;
-% ConnPath = detectPath(); % replace detectPath() with your path to Connectivity folder
-ConnPath = detectPath();
+ConnPath = detectPath(); % replace detectPath() with your path to Connectivity folder
+
 matClasses = ["0.HC" "1.EMCI" "3.LMCI" "4.AD"];
 
-for c = 1:length(matClasses)
-
-    matClass = char(matClasses(c));
+for cc = 1:length(matClasses)
+    matClass = char(matClasses(cc));
     matPath = [ConnPath matClass 'out' '/'];
 
-    matDir = dir([matPath 'dpswed*.mat']); % 遍历所有mat格式文件
+    matDir = dir([matPath 'dpswed*.mat']); % 閬嶅巻鎵�鏈塵at鏍煎紡鏂囦欢
     numMat = length(matDir);
 
     mat = zeros(360, 360, numMat, 'single');
 
     for i = 1:numMat
         tmp = load([matPath matDir(i).name]);
-        mat(:, :, i) = tmp.dpswed_mat; %读取每个mat
-        %     mat(:, :, i)=1./mat(:, :, i);
+        mat(:, :, i) = binarize(tmp.dpswed_mat); %璇诲彇姣忎釜mat
         [startIdx, endIdx] = regexp(matDir(i).name, 'ADNI[^.]+');
         matIdx = matDir(i).name(startIdx:endIdx);
         out(i).index = matIdx;
@@ -29,20 +27,20 @@ for c = 1:length(matClasses)
     j = createJob(c);
 
     for i = 1:numMat
-        createTask(j, @degrees_dir, 3, {mat(:, :, i)}); %TODO
+        createTask(j, @efficiency_bin, 1, {mat(:, :, i), 2}); %TODO
     end
 
     submit(j);
     wait(j);
 
     taskoutput = fetchOutputs(j);
-    e = vertcat(taskoutput{:, 3});
+    e = [taskoutput{:, 1}];
 
     for i = 1:numMat
-        out(i).value = e(i, :);
+        out(i).value = e(:, i);
     end
 
-    if c == 1
+    if cc == 1
         allout = struct(out);
     else
         allout(length(allout) + 1:length(allout) + length(out)) = out;
@@ -50,7 +48,7 @@ for c = 1:length(matClasses)
 
 end
 
-f = fopen(['~/Desktop' 'degree''.json'], 'w');
-fprintf(f, '%s', jsonencode(out));
+f = fopen('~/Desktop/LocEffi.json', 'w');
+fprintf(f, '%s', jsonencode(allout));
 fclose(f);
 toc;
