@@ -1,6 +1,6 @@
 from genericpath import exists
 import numpy as np
-from sklearn import svm, tree
+from sklearn import neighbors, svm, tree
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.naive_bayes import GaussianNB
@@ -9,6 +9,7 @@ from sklearn import preprocessing
 from sklearn import pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
+from ReliefF import ReliefF as relief
 import time
 import pymongo
 import random
@@ -17,44 +18,50 @@ import threading
 import matplotlib.pyplot as plt
 
 
-def count_columns(charsToInput, db) -> int:
-
-    num_column = 0
-    for char in charsToInput:
-        value = db.get_collection(char).find_one()['value']
-        if type(value) != list:
-            value = [value]
-        num_column += len(value)
-    return num_column
+def count_columns(charsToInput, re_dim_to) -> int:
+    return len(charsToInput['global']) + re_dim_to
 
 
-def retrive_data_from_database(charsToInput) -> np.ndarray:
+def retrive_data_from_database(charsToInput, re_dim_to) -> np.ndarray:
     with open('code/config.json', 'r') as f:
         config = json.load(f)
         client = pymongo.MongoClient(config['mongodburl'])
         db = client.AD
 
-    num_column = count_columns(charsToInput, db)
-    if exists('code/sklearn/data.txt'):
-        data = np.loadtxt('code/sklearn/data.txt', delimiter=',')
-        if data.shape[1] == num_column+1:
-            return data
+    # num_column = count_columns(charsToInput, re_dim_to)
+    # if exists('code/sklearn/data.txt'):
+    #     data = np.loadtxt('code/sklearn/data.txt', delimiter=',')
+    #     if data.shape[1] == num_column+1:
+    #         return data
 
-    # the last column is label
-    ret = np.zeros((102, num_column+1), dtype=np.float64)
-    columnidx = 0
+    global_data = np.zeros(
+        (102, len(charsToInput['global'])), dtype=np.float64)
+    local_data = np.zeros(
+        (102, len(charsToInput['local'])*360), dtype=np.float64)
+    label = np.zeros((102, 1), dtype=np.float64)
 
-    for char in charsToInput:
+    colidx = 0
+    for char in charsToInput['global']:
         cursor = db.get_collection(char).find(
             {}).sort('index', pymongo.ASCENDING)
         rowidx = 0
         for c in cursor:
-            value = c['value']
-            if type(value) != list:
-                value = [value]
-            ret[rowidx, columnidx:columnidx + len(value)] = value
+            global_data[rowidx, colidx] = c['value']
             rowidx += 1
-        columnidx += len(value)
+        colidx += 1
+
+    colidx = 0
+    for char in charsToInput['local']:
+        cursor = db.get_collection(char).find(
+            {}).sort('index', pymongo.ASCENDING)
+        value = []
+        for c in cursor:
+            value.append(c['value'])
+        value = np.array(value)
+        local_data[:, colidx:colidx+value.shape[1]] = value
+        colidx += value.shape[1]
+    # local_data = preprocessing.StandardScaler().fit_transform(local_data)
+    # local_data = PCA(n_components=0.9).fit_transform(local_data)
 
     cursor = db.get_collection('category').find(
         {}).sort('index', pymongo.ASCENDING)
@@ -62,19 +69,23 @@ def retrive_data_from_database(charsToInput) -> np.ndarray:
     rowidx = 0
     for c in cursor:
         category = c['category']
-        ret[rowidx, -1] = cate_map[category]
+        label[rowidx] = cate_map[category]
         rowidx += 1
 
+    pipe = pipeline.Pipeline(
+        [('scaler', preprocessing.StandardScaler()), ('norm', preprocessing.Normalizer())])
+
+    # t = np.column_stack((local_data, label))
+    # r = relief(n_features_to_keep=re_dim_to)
+    # local_data = r.fit_transform(t[:, :-1], t[:, -1])
+
+    ret = np.column_stack((global_data, local_data[:, :colidx], label))
+
     ret = np.array(sorted(ret, key=lambda x: x[-1]))
+
+    # ret[:, :-1] = pipe.fit_transform(ret[:, :-1])
     np.savetxt('code/sklearn/data.txt', ret, delimiter=',')
     return ret
-
-
-def dedim(data, re_dim_to):
-    pca = PCA(n_components=20)
-    dataX = pca.fit_transform(data[:, :-1])
-    data = np.column_stack((dataX, data[:, -1]))
-    return data
 
 
 def split_train_test(data, test_size=0.2, cates=['HC', 'AD']):
@@ -128,18 +139,12 @@ def predict(data, test_size, cates) -> float:
 
     train_data_x, train_data_y = split_data_label(train_data)
     test_data_x, test_data_y = split_data_label(test_data)
-    pipe = pipeline.Pipeline(
-        [('scaler', preprocessing.StandardScaler()), ('sc', preprocessing.Normalizer()),
-         ('reduce_dim', PCA()), ('svc', svm.SVC())])
 
-    # clf = svm.SVC()
-    # clf.fit(train_data_x, train_data_y)
-    # clf = svm.SVC(C=1, gamma=0.1)
-    pipe.fit(train_data_x, train_data_y)
+    clf = svm.SVC(C=1, gamma=0.1)
+    clf.fit(train_data_x, train_data_y)
 
-    accuracy = pipe.score(test_data_x, test_data_y)
-    # print(np.column_stack((clf.predict(test_data_x), test_data_y)))
-    return accuracy
+    print(np.column_stack((clf.predict(test_data_x), test_data_y)))
+    return clf.score(test_data_x, test_data_y)
 
 
 class MyThread(threading.Thread):
@@ -175,16 +180,32 @@ def train(data, repeat, test_size, cates, re_dim_to) -> list:
 
 
 def main():
-    repeat = 100
+    repeat = 1
 
-    # charsToInput = ['page_rank', 'optimalNModules', 'degree', 'charpath', 'eigenvector', 'strength',
-    #                 'global_efficiency', 'betweeness_centrality', 'clustering_coefficient', 'local_efficiency', 'assortativity', 'small_world_index']
-    charsToInput = ['page_rank', 'global_efficiency_bin', 'optimalNModules', 'local_efficiency_bin', 'degree', 'charpath', 'charpath_bin', 'eigenvector', 'strength', 'global_efficiency',
-                    'betweeness_centrality', 'clustering_coefficient', 'local_efficiency', 'assortativity_bin', 'betweeness_centrality_bin', 'assortativity', 'clustering_coefficient_bin', 'small_world_index']
+    charsToInput = {
+        'global': [
+            'small_world_index',
+            'assortativity',
+            'assortativity_bin',
+            'charpath',
+            'charpath_bin',
+            'global_efficiency',
+            'global_efficiency_bin',
+            'optimalNModules',
+            'optimal_n_modules_bin',
+            'density'],
+        'local': ['local_efficiency',
+                  'local_efficiency_bin',
+                  'page_rank',
+                  'degree',
+                  'eigenvector',
+                  'betweeness_centrality',
+                  'betweeness_centrality_bin',
+                  'clustering_coefficient']}
     test_size = 0.2
     cates = ['HC', 'AD']
-    re_dim_to = 2
-    data = retrive_data_from_database(charsToInput)
+    re_dim_to = 10
+    data = retrive_data_from_database(charsToInput, re_dim_to)
 
     accr = []
     clu_threads = []
@@ -196,7 +217,7 @@ def main():
             rets.append(tt.get_result())
         accr.append(sum(rets)/repeat)
 
-    # plt.plot(accr)
+    plt.plot(rets)
     # plt.show()
     print(accr)
     print(sum(accr)/len(accr))
